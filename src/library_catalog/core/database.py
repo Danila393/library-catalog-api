@@ -35,3 +35,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close() # Закрываем соединение чтобы не перегружать БД
 
 
+async def dispose_engine() -> None:
+    """Закрыть все соединения с БД."""
+    await engine.dispose()
