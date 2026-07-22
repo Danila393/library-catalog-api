@@ -179,28 +179,19 @@ class BookService:
         if pages <= 0:
             raise InvalidPagesException(pages)
 
-    async def _enrich_book_data(
-            self,
-            book_data: BookCreate
-    ) -> dict | None:
-        """
-        Обогатить данные книги из Open Library.
-
-        Не выбрасывает исключение если API недоступен.
-        """
+    async def _enrich_book_data(self, book_data: BookCreate) -> dict | None:
         try:
-            extra = await self.ol_client.enrich(
-                title=book_data.title,
-                author=book_data.author,
-                isbn=book_data.isbn,
+            extra = await asyncio.wait_for(
+                self.ol_client.enrich(
+                    title=book_data.title,
+                    author=book_data.author,
+                    isbn=book_data.isbn,
+                ),
+                timeout=5.0,
             )
             return extra if extra else None
-        except OpenLibraryException:
-            # Логируем но не прерываем создание книги
+        except (OpenLibraryException, asyncio.TimeoutError):
             import logging
             logger = logging.getLogger(__name__)
-            logger.warning(
-                "Failed to enrich book data from Open Library",
-                extra={"title": book_data.title, "author": book_data.author}
-            )
+            logger.warning("Failed to enrich book data from Open Library")
             return None
