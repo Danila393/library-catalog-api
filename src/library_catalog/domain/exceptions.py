@@ -10,7 +10,7 @@ class BookNotFoundException(NotFoundException):
         super().__init__(resource="Book", identifier=book_id)
 
 
-class BookAlreadyExistsExceptions(AppException):
+class BookAlreadyExistsException(AppException):
     """Книга с таким ISBN уже существует."""
     def __init__(self, isbn: str):
         super().__init__(
