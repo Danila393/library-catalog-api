@@ -4,7 +4,7 @@ from ...data.repositories.book_repository import BookRepository
 from ...external.openlibrary.client import OpenLibraryClient
 from ..exceptions import *
 from ..mappers.book_mapper import BookMapper
-
+import asyncio
 
 class BookService:
     """
