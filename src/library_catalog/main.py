@@ -7,11 +7,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.dependencies import get_openlibrary_client
+from .api.v1.routers import books, health
 from .core.config import settings
 from .core.database import dispose_engine
 from .core.exceptions import register_exception_handlers
 from .core.logging_config import setup_logging
-from .api.v1.routers import books, health
 
 
 
@@ -25,17 +26,21 @@ async def lifespan(app: FastAPI):
 
     Выполняется при:
     - startup: настройка логирования
-    - shutdown: закрытие подключений к БД
+    - shutdown: закрытие HTTP-клиента и подключений к БД
     """
     # Startup
     setup_logging()
+    openlibrary_client = get_openlibrary_client()
     print("🚀 Application started")
 
-    yield
-
-    # Shutdown
-    await dispose_engine()
-    print("👋 Application stopped")
+    try:
+        yield
+    finally:
+        # Shutdown
+        await openlibrary_client.close()
+        get_openlibrary_client.cache_clear()
+        await dispose_engine()
+        print("👋 Application stopped")
 
 
 # ========== CREATE APP ==========
