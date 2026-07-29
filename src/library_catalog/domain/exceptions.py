@@ -14,7 +14,7 @@ class BookAlreadyExistsException(AppException):
     """Книга с таким ISBN уже существует."""
     def __init__(self, isbn: str):
         super().__init__(
-            message=f"Book with ISBN '{isbn} already exists'",
+            message=f"Book with ISBN '{isbn}' already exists",
             status_code=409,
         )
 
@@ -25,7 +25,7 @@ class InvalidYearException(AppException):
         from datetime import datetime
         current_year = datetime.now().year
         super().__init__(
-            message=f"year {year} is invalid (must be 1000-{current_year}",
+            message=f"Year {year} is invalid (must be 1000-{current_year})",
             status_code=400,
         )
 
