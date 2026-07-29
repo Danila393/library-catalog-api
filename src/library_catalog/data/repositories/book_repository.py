@@ -1,14 +1,31 @@
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
-from .base_repository import BaseRepository
+from ...domain.exceptions import BookAlreadyExistsException
 from ..models.book import Book
+from .base_repository import BaseRepository
 
 
 class BookRepository(BaseRepository[Book]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Book)
+
+    async def create(self, **kwargs: object) -> Book:
+        try:
+            return await super().create(**kwargs)
+        except IntegrityError as exc:
+            isbn = kwargs.get("isbn")
+            sqlstate = (
+                getattr(exc.orig, "sqlstate", None)
+                or getattr(exc.orig, "pgcode", None)
+            )
+
+            if sqlstate == "23505" and isinstance(isbn, str):
+                raise BookAlreadyExistsException(isbn) from exc
+
+            raise
 
     @staticmethod
     def _apply_filters(
