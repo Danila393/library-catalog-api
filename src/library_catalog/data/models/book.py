@@ -1,7 +1,16 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, JSON, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Index,
+    Integer,
+    JSON,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -10,6 +19,21 @@ from ...core.database import Base
 
 class Book(Base):
     __tablename__ = "books"
+
+    __table_args__ = (
+        Index(
+            "ix_books_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_books_author_trgm",
+            "author",
+            postgresql_using="gin",
+            postgresql_ops={"author": "gin_trgm_ops"},
+        ),
+    )
 
     book_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -21,13 +45,11 @@ class Book(Base):
     title: Mapped[str] = mapped_column(
         String(500),
         nullable=False,
-        index=True,
     )
 
     author: Mapped[str] = mapped_column(
         String(300),
         nullable=False,
-        index=True,
     )
 
     year: Mapped[int] = mapped_column(
