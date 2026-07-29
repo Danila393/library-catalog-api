@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # БД
     database_url: PostgresDsn
     database_pool_size: int = 20
+    database_pool_max_overflow: int = 10
+    database_pool_timeout: float = 30.0
+    database_pool_recycle: int = 1800
 
     # API
     api_v1_prefix: str = "/api/v1"
