@@ -4,6 +4,23 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
+def _validate_isbn_format(value: str | None) -> str | None:
+    """Проверить формат ISBN."""
+
+    if value is None:
+        return value
+
+    clean = value.replace("-", "").replace(" ", "")
+
+    if not clean.replace("X", "").isdigit():
+        raise ValueError("ISBN может содержать только цифры.")
+
+    if len(clean) not in (10, 13):
+        raise ValueError("ISBN должен состоять из 10 или 13 символов.")
+
+    return value
+
+
 class BookBaseDTO(BaseModel):
     """Общие данные книги."""
 
@@ -23,22 +40,8 @@ class BookCreateDTO(BookBaseDTO):
     @field_validator("isbn")
     @classmethod
     def validate_isbn(cls, value: str | None) -> str | None:
-        """Валидация формата ISBN."""
-        if value is None:
-            return value
-
-        # Удалить дефисы
-        clean = value.replace('-', '').replace(' ', '')
-
-        # Проверить что только цифры (и X для ISBN-10)
-        if not clean.replace("X", '').isdigit():
-            raise ValueError("ISBN может содержать только цифры.")
-
-        # Проверить длину
-        if len(clean) not in (10, 13):
-            raise ValueError("ISBN должен состоять из 10 или 13 чисел.")
-
-        return value
+        """Проверить ISBN при создании книги."""
+        return _validate_isbn_format(value)
 
 
 class BookUpdateDTO(BaseModel):
@@ -50,8 +53,18 @@ class BookUpdateDTO(BaseModel):
     genre: str | None = Field(None, min_length=1, max_length=100)
     pages: int | None = Field(None, gt=0)
     available: bool | None = None
-    isbn: str | None = None
+    isbn: str | None = Field(
+        None,
+        min_length=10,
+        max_length=20,
+    )
     description: str | None = None
+
+    @field_validator("isbn")
+    @classmethod
+    def validate_isbn(cls, value: str | None) -> str | None:
+        """Проверить ISBN при обновлении книги."""
+        return _validate_isbn_format(value)
 
 
 class BookDTO(BookBaseDTO):
