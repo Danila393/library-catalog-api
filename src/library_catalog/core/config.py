@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # API
     api_v1_prefix: str = "/api/v1"
     log_level: str = "INFO"
+    log_format: Literal["text", "json"] = "text"
     docs_url: str = "/docs"
     redoc_url: str = "/redoc"
     cors_origins: list[str] = ["*"]

@@ -33,7 +33,10 @@ async def lifespan(app: FastAPI):
     - shutdown: закрытие HTTP-клиента и подключений к БД
     """
     # Startup
-    setup_logging()
+    setup_logging(
+        level=settings.log_level,
+        json_format=settings.log_format == "json",
+    )
     openlibrary_client = get_openlibrary_client()
     logger.info("🚀 Application started")
 
