@@ -1,8 +1,9 @@
 import asyncio
 import logging
+from datetime import datetime
 from uuid import UUID
 
-from ..dto.book import BookCreateDTO, BookDTO, BookUpdateDTO
+from ..dto.book import BookCreateDTO, BookDTO, BookExtra, BookUpdateDTO
 from ..exceptions import (
     BookAlreadyExistsException,
     BookNotFoundException,
@@ -12,7 +13,6 @@ from ..exceptions import (
 )
 from ..ports.book_enricher import BookEnricherProtocol
 from ..ports.book_repository import BookRepositoryProtocol
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,9 @@ class BookService:
     """
 
     def __init__(
-            self,
-            book_repository: BookRepositoryProtocol,
-            openlibrary_client: BookEnricherProtocol,
+        self,
+        book_repository: BookRepositoryProtocol,
+        openlibrary_client: BookEnricherProtocol,
     ):
         self.book_repo = book_repository
         self.ol_client = openlibrary_client
@@ -93,9 +93,9 @@ class BookService:
         return BookDTO.model_validate(book)
 
     async def update_book(
-            self,
-            book_id: UUID,
-            book_data: BookUpdateDTO,
+        self,
+        book_id: UUID,
+        book_data: BookUpdateDTO,
     ) -> BookDTO:
         """
         Обновить книгу.
@@ -115,8 +115,7 @@ class BookService:
 
         # Обновить
         updated = await self.book_repo.update(
-            book_id,
-            **book_data.model_dump(exclude_unset=True)
+            book_id, **book_data.model_dump(exclude_unset=True)
         )
 
         return BookDTO.model_validate(updated)
@@ -133,14 +132,14 @@ class BookService:
             raise BookNotFoundException(book_id)
 
     async def search_books(
-            self,
-            title: str | None = None,
-            author: str | None = None,
-            genre: str | None = None,
-            year: int | None = None,
-            available: bool | None = None,
-            limit: int = 20,
-            offset: int = 0,
+        self,
+        title: str | None = None,
+        author: str | None = None,
+        genre: str | None = None,
+        year: int | None = None,
+        available: bool | None = None,
+        limit: int = 20,
+        offset: int = 0,
     ) -> tuple[list[BookDTO], int]:
         """
         Поиск книг с фильтрацией и пагинацией.
@@ -168,10 +167,7 @@ class BookService:
             available=available,
         )
 
-        return [
-            BookDTO.model_validate(book)
-            for book in books
-        ], total
+        return [BookDTO.model_validate(book) for book in books], total
 
     # ========== ПРИВАТНЫЕ МЕТОДЫ ==========
 
@@ -182,8 +178,6 @@ class BookService:
 
     def _validate_year(self, year: int) -> None:
         """Проверить что год валиден."""
-        from datetime import datetime
-
         current_year = datetime.now().year
         if year < 1000 or year > current_year:
             raise InvalidYearException(year)
@@ -193,7 +187,10 @@ class BookService:
         if pages <= 0:
             raise InvalidPagesException(pages)
 
-    async def _enrich_book_data(self, book_data: BookCreateDTO) -> dict | None:
+    async def _enrich_book_data(
+        self,
+        book_data: BookCreateDTO,
+    ) -> BookExtra | None:
         try:
             extra = await asyncio.wait_for(
                 self.ol_client.enrich(
@@ -204,6 +201,6 @@ class BookService:
                 timeout=5.0,
             )
             return extra if extra else None
-        except (OpenLibraryException, asyncio.TimeoutError):
+        except (TimeoutError, OpenLibraryException):
             logger.warning("Failed to enrich book data from Open Library")
             return None

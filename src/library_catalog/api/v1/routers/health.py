@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
-from ..schemas.common import HealthCheckResponse
 from ...dependencies import DbSessionDep
+from ..schemas.common import HealthCheckResponse
 
 router = APIRouter(prefix="/health", tags=["Health"])
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/health", tags=["Health"])
     summary="Health Check",
     description="Проверить состояние сервиса и подключение к БД",
 )
-async def health_check(db: DbSessionDep):
+async def health_check(db: DbSessionDep) -> HealthCheckResponse:
     """
     Проверить здоровье сервиса.
 

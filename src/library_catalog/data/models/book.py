@@ -2,11 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     Index,
-    Integer,
-    JSON,
     String,
     Text,
     func,
@@ -15,6 +14,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...core.database import Base
+from ...domain.dto.book import BookExtra
 
 
 class Book(Base):
@@ -52,19 +52,14 @@ class Book(Base):
         nullable=False,
     )
 
-    year: Mapped[int] = mapped_column(
-        index=True,
-        nullable=False
-    )
+    year: Mapped[int] = mapped_column(index=True, nullable=False)
 
     genre: Mapped[str] = mapped_column(
         String(100),
         index=True,
     )
 
-    pages: Mapped[int] = mapped_column(
-        nullable=False
-    )
+    pages: Mapped[int] = mapped_column(nullable=False)
 
     available: Mapped[bool] = mapped_column(
         Boolean,
@@ -78,24 +73,19 @@ class Book(Base):
 
     description: Mapped[str | None] = mapped_column(Text)
 
-    extra: Mapped[dict | None] = mapped_column(
-        JSON,
-        nullable=True
-    )
+    extra: Mapped[BookExtra | None] = mapped_column(JSON, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=func.now(), # Автоматически ставит текущее время базы при создании
+        default=func.now(),  # Автоматически ставит текущее время базы при создании
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),
-        onupdate=func.now(), # Автоматически обновляет время при любом изменении строки
+        onupdate=func.now(),  # Автоматически обновляет время при любом изменении строки
     )
-
 
     def __repr__(self) -> str:
         return f"<Book(id={self.book_id}, title='{self.title}')>"
-

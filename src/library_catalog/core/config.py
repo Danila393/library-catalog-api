@@ -1,7 +1,8 @@
+from functools import lru_cache
 from typing import Literal
+
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -39,7 +40,6 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
-
 
     @property
     def database_url_str(self) -> str:

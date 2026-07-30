@@ -1,7 +1,10 @@
 from datetime import datetime
+from typing import Any, TypeAlias
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+BookExtra: TypeAlias = dict[str, Any]
 
 
 def _validate_isbn_format(value: str | None) -> str | None:
@@ -74,7 +77,7 @@ class BookDTO(BookBaseDTO):
     available: bool
     isbn: str | None
     description: str | None
-    extra: dict | None
+    extra: BookExtra | None
     created_at: datetime
     updated_at: datetime
 

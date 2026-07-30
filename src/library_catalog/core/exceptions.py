@@ -5,8 +5,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from .logging_context import REQUEST_ID_HEADER, request_id_var
 
+from .logging_context import REQUEST_ID_HEADER, request_id_var
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,8 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
-            request: Request,
-            exc: Exception,
+        request: Request,
+        exc: Exception,
     ) -> JSONResponse:
         request_id = getattr(
             request.state,

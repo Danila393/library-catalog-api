@@ -1,12 +1,13 @@
-from typing import Generic, TypeVar
+from typing import Generic, Self, TypeVar
+
 from pydantic import BaseModel, Field
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PaginationParams(BaseModel):
     """Параметры пагинации."""
+
     page: int = Field(1, ge=1, description="Номер страницы")
     page_size: int = Field(20, ge=1, le=100, description="Размер страницы")
 
@@ -14,7 +15,6 @@ class PaginationParams(BaseModel):
     def offset(self) -> int:
         """Вычислить offset для SQL."""
         return (self.page - 1) * self.page_size
-
 
     @property
     def limit(self) -> int:
@@ -24,6 +24,7 @@ class PaginationParams(BaseModel):
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """Generic схема для пагинированных ответов."""
+
     items: list[T]
     total: int = Field(..., description="Всего элементов")
     page: int = Field(..., description="Текущая страница")
@@ -32,11 +33,11 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
     @classmethod
     def create(
-            cls,
-            items: list[T],
-            total: int,
-            pagination: PaginationParams,
-    ):
+        cls,
+        items: list[T],
+        total: int,
+        pagination: PaginationParams,
+    ) -> Self:
         """Создать пагинированный ответ."""
         pages = (total + pagination.page_size - 1) // pagination.page_size
 
@@ -51,5 +52,6 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 class HealthCheckResponse(BaseModel):
     """Схема для health check."""
+
     status: str = "healthy"
     database: str = "connected"

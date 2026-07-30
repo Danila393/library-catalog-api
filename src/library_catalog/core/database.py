@@ -1,12 +1,14 @@
 from collections.abc import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
 from .config import settings
 
 
 class Base(DeclarativeBase):
-    """ Тут в будущем будут таблицы"""
+    """Тут в будущем будут таблицы"""
+
     pass
 
 
@@ -33,10 +35,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             yield session
             await session.commit()
         except Exception:
-            await session.rollback() # Отменяем изменения в БД, если что-то пошло не так
+            # Отменяем изменения в БД, если запрос завершился ошибкой.
+            await session.rollback()
             raise
         finally:
-            await session.close() # Закрываем соединение чтобы не перегружать БД
+            await session.close()  # Закрываем соединение чтобы не перегружать БД
 
 
 async def dispose_engine() -> None:

@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
-import httpx
-import logging
 import asyncio
+import logging
+from abc import ABC, abstractmethod
+from typing import Any, cast
 
-
+import httpx
 
 
 class BaseApiClient(ABC):
@@ -18,13 +18,13 @@ class BaseApiClient(ABC):
     """
 
     def __init__(
-            self,
-            base_url: str,
-            timeout: float = 10.0,
-            retries: int = 3,
-            backoff: float = 0.5,
-            max_connections: int = 20,
-            max_keepalive_connections: int = 10,
+        self,
+        base_url: str,
+        timeout: float = 10.0,
+        retries: int = 3,
+        backoff: float = 0.5,
+        max_connections: int = 20,
+        max_keepalive_connections: int = 10,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -42,12 +42,10 @@ class BaseApiClient(ABC):
         )
         self.logger = logging.getLogger(self.client_name())
 
-
     @abstractmethod
     def client_name(self) -> str:
         """Имя клиента для логирования."""
         pass
-
 
     def _build_url(self, path: str) -> str:
         """Построить полный URL."""
@@ -55,15 +53,14 @@ class BaseApiClient(ABC):
             path = "/" + path
         return self.base_url + path
 
-
     async def _request(
-            self,
-            method: str,
-            path: str,
-            params: dict | None = None,
-            json: dict | None = None,
-            headers: dict | None = None,
-    ) -> dict:
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
         Выполнить HTTP запрос с retry логикой.
         """
@@ -82,32 +79,43 @@ class BaseApiClient(ABC):
                 )
 
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
 
             except httpx.TimeoutException:
                 if attempt == self.retries - 1:
                     self.logger.error(f"Timeout after {self.retries} attempts")
                     raise
 
-                wait_time = self.backoff * (2 ** attempt)
+                wait_time = self.backoff * (2**attempt)
                 self.logger.warning(f"Timeout, retrying in {wait_time}s...")
                 await asyncio.sleep(wait_time)  # Асинхронное ожидание!
 
             except httpx.HTTPStatusError as e:
                 # 5xx ошибки - retry
                 if e.response.status_code >= 500 and attempt < self.retries - 1:
-                    wait_time = self.backoff * (2 ** attempt)
+                    wait_time = self.backoff * (2**attempt)
                     self.logger.warning(f"Server error, retrying in {wait_time}s...")
                     await asyncio.sleep(wait_time)
                 else:
                     self.logger.error(f"HTTP error: {e}")
                     raise
 
+        raise RuntimeError("HTTP request attempts exhausted")
 
-    async def _get(self, path: str, **kwargs) -> dict:
+    async def _get(
+        self,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """GET запрос."""
-        return await self._request("GET", path, **kwargs)
-
+        return await self._request(
+            "GET",
+            path,
+            params=params,
+            headers=headers,
+        )
 
     async def close(self) -> None:
         """Закрыть HTTP клиент."""

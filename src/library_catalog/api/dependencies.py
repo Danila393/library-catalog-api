@@ -4,16 +4,14 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..core.config import settings
 from ..core.database import get_db
 from ..data.repositories.book_repository import BookRepository
 from ..domain.services.book_service import BookService
 from ..external.openlibrary.client import OpenLibraryClient
-from ..core.config import settings
-
-
-
 
 # ========== EXTERNAL CLIENTS (Singletons) ==========
+
 
 @lru_cache
 def get_openlibrary_client() -> OpenLibraryClient:
@@ -28,16 +26,15 @@ def get_openlibrary_client() -> OpenLibraryClient:
         base_url=settings.openlibrary_base_url,
         timeout=settings.openlibrary_timeout,
         max_connections=settings.openlibrary_max_connections,
-        max_keepalive_connections=(
-            settings.openlibrary_max_keepalive_connections
-        ),
+        max_keepalive_connections=(settings.openlibrary_max_keepalive_connections),
     )
 
 
 # ========== REPOSITORIES ==========
 
+
 async def get_book_repository(
-        db: Annotated[AsyncSession, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> BookRepository:
     """
     Создать BookRepository для текущей сессии БД.
@@ -51,9 +48,10 @@ async def get_book_repository(
 
 # ========== SERVICES ==========
 
+
 async def get_book_service(
-        book_repo: Annotated[BookRepository, Depends(get_book_repository)],
-        ol_client: Annotated[OpenLibraryClient, Depends(get_openlibrary_client)],
+    book_repo: Annotated[BookRepository, Depends(get_book_repository)],
+    ol_client: Annotated[OpenLibraryClient, Depends(get_openlibrary_client)],
 ) -> BookService:
     """
     Создать BookService с внедренными зависимостями.

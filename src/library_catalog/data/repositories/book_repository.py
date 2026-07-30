@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +8,8 @@ from sqlalchemy.sql import Select
 from ...domain.exceptions import BookAlreadyExistsException
 from ..models.book import Book
 from .base_repository import BaseRepository
+
+_SelectRowT = TypeVar("_SelectRowT", bound=tuple[object, ...])
 
 
 class BookRepository(BaseRepository[Book]):
@@ -17,9 +21,8 @@ class BookRepository(BaseRepository[Book]):
             return await super().create(**kwargs)
         except IntegrityError as exc:
             isbn = kwargs.get("isbn")
-            sqlstate = (
-                getattr(exc.orig, "sqlstate", None)
-                or getattr(exc.orig, "pgcode", None)
+            sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(
+                exc.orig, "pgcode", None
             )
 
             if sqlstate == "23505" and isinstance(isbn, str):
@@ -29,14 +32,14 @@ class BookRepository(BaseRepository[Book]):
 
     @staticmethod
     def _apply_filters(
-        stmt: Select,
+        stmt: Select[_SelectRowT],
         *,
         title: str | None = None,
         author: str | None = None,
         genre: str | None = None,
         year: int | None = None,
         available: bool | None = None,
-    ) -> Select:
+    ) -> Select[_SelectRowT]:
         """Применить фильтры книг к SQL-запросу."""
 
         if title:

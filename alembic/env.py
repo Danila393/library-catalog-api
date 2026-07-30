@@ -1,19 +1,17 @@
-import sys
-import os
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
 
 sys.path.insert(0, os.getcwd())
 
 from src.library_catalog.core.config import settings
 from src.library_catalog.core.database import Base
-
 from src.library_catalog.data.models import book
 
 config = context.config
@@ -74,5 +72,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
-

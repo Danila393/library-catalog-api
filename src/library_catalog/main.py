@@ -3,28 +3,29 @@
 """
 
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.dependencies import get_openlibrary_client
-from .api.v1.routers import books, health
 from .api.middleware.request_id import RequestIdMiddleware
-from .core.logging_context import REQUEST_ID_HEADER
+from .api.v1.routers import books, health
 from .core.config import settings
 from .core.database import dispose_engine
 from .core.exceptions import register_exception_handlers
 from .core.logging_config import setup_logging
-
+from .core.logging_context import REQUEST_ID_HEADER
 
 logger = logging.getLogger(__name__)
 
 
 # ========== LIFECYCLE EVENTS ==========
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     Lifecycle manager для FastAPI.
 
@@ -95,8 +96,9 @@ app.include_router(
 
 # ========== ROOT ENDPOINT ==========
 
+
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Корневой эндпоинт."""
     return {
         "message": "Welcome to Library Catalog API",

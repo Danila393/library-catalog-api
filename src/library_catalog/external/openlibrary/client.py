@@ -1,19 +1,21 @@
+from typing import Any
+
 import httpx
-from ..base.base_client import BaseApiClient
+
+from ...domain.dto.book import BookExtra
 from ...domain.exceptions import OpenLibraryException, OpenLibraryTimeoutException
-
-
+from ..base.base_client import BaseApiClient
 
 
 class OpenLibraryClient(BaseApiClient):
     """Клиент для Open Library API."""
 
     def __init__(
-            self,
-            base_url: str = "https://openlibrary.org",
-            timeout: float = 10.0,
-            max_connections: int = 20,
-            max_keepalive_connections: int = 10,
+        self,
+        base_url: str = "https://openlibrary.org",
+        timeout: float = 10.0,
+        max_connections: int = 20,
+        max_keepalive_connections: int = 10,
     ) -> None:
         super().__init__(
             base_url,
@@ -22,18 +24,13 @@ class OpenLibraryClient(BaseApiClient):
             max_keepalive_connections=max_keepalive_connections,
         )
 
-
     def client_name(self) -> str:
         return "openlibrary"
 
-
-    async def search_by_isbn(self, isbn: str) -> dict:
+    async def search_by_isbn(self, isbn: str) -> BookExtra:
         """Поиск книги по ISBN."""
         try:
-            data = await self._get(
-                "/search.json",
-                params={"isbn": isbn, "limit": 1}
-            )
+            data = await self._get("/search.json", params={"isbn": isbn, "limit": 1})
 
             docs = data.get("docs", [])
             if not docs:
@@ -41,26 +38,20 @@ class OpenLibraryClient(BaseApiClient):
 
             return self._extract_book_data(docs[0])
 
-        except httpx.TimeoutException:
-            raise OpenLibraryTimeoutException(self.timeout)
-        except httpx.HTTPError as e:
-            raise OpenLibraryException(str(e))
-
+        except httpx.TimeoutException as exc:
+            raise OpenLibraryTimeoutException(self.timeout) from exc
+        except httpx.HTTPError as exc:
+            raise OpenLibraryException(str(exc)) from exc
 
     async def search_by_title_author(
         self,
         title: str,
         author: str,
-    ) -> dict:
+    ) -> BookExtra:
         """Поиск по названию и автору."""
         try:
             data = await self._get(
-                "/search.json",
-                params={
-                    "title": title,
-                    "author": author,
-                    "limit": 1
-                }
+                "/search.json", params={"title": title, "author": author, "limit": 1}
             )
 
             docs = data.get("docs", [])
@@ -69,18 +60,17 @@ class OpenLibraryClient(BaseApiClient):
 
             return self._extract_book_data(docs[0])
 
-        except httpx.TimeoutException:
-            raise OpenLibraryTimeoutException(self.timeout)
-        except httpx.HTTPError as e:
-            raise OpenLibraryException(str(e))
-
+        except httpx.TimeoutException as exc:
+            raise OpenLibraryTimeoutException(self.timeout) from exc
+        except httpx.HTTPError as exc:
+            raise OpenLibraryException(str(exc)) from exc
 
     async def enrich(
-            self,
-            title: str,
-            author: str,
-            isbn: str | None = None,
-    ) -> dict:
+        self,
+        title: str,
+        author: str,
+        isbn: str | None = None,
+    ) -> BookExtra:
         """
         Обогатить данные книги.
         Сначала пытается найти по ISBN, затем по title+author.
@@ -92,10 +82,9 @@ class OpenLibraryClient(BaseApiClient):
 
         return await self.search_by_title_author(title, author)
 
-
-    def _extract_book_data(self, doc: dict) -> dict:
+    def _extract_book_data(self, doc: dict[str, Any]) -> BookExtra:
         """Извлечь нужные поля из ответа Open Library."""
-        result = {}
+        result: BookExtra = {}
 
         if cover_id := doc.get("cover_i"):
             result["cover_url"] = self._get_cover_url(cover_id)
@@ -113,7 +102,6 @@ class OpenLibraryClient(BaseApiClient):
             result["rating"] = ratings
 
         return result
-
 
     def _get_cover_url(self, cover_id: int | None) -> str | None:
         """Получить URL обложки."""

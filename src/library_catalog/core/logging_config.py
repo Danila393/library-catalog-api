@@ -10,7 +10,7 @@ class RequestIdFilter(logging.Filter):
     """Добавить request_id в каждую запись лога."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        setattr(record, "request_id", request_id_var.get())
+        record.request_id = request_id_var.get()
         return True
 
 

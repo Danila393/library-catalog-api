@@ -11,7 +11,6 @@ from starlette.responses import Response
 
 from ...core.logging_context import REQUEST_ID_HEADER, request_id_var
 
-
 logger = logging.getLogger(__name__)
 
 

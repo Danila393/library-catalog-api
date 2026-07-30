@@ -1,12 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from ....domain.dto.book import (
-    BookCreateDTO,
-    BookDTO,
-    BookUpdateDTO
-)
-
-
+from ....domain.dto.book import BookCreateDTO, BookDTO, BookUpdateDTO
 
 
 class BookCreate(BookCreateDTO):
@@ -22,9 +16,7 @@ class BookCreate(BookCreateDTO):
                     "genre": "Programming",
                     "pages": 464,
                     "isbn": "978-0132350884",
-                    "description": (
-                        "A Handbook of Agile Software Craftsmanship"
-                     ),
+                    "description": ("A Handbook of Agile Software Craftsmanship"),
                 }
             ]
         }
@@ -51,13 +43,9 @@ class ShowBook(BookDTO):
                     "pages": 464,
                     "available": True,
                     "isbn": "978-0132350884",
-                    "description": (
-                        "A Handbook of Agile Software Craftsmanship"
-                    ),
+                    "description": ("A Handbook of Agile Software Craftsmanship"),
                     "extra": {
-                        "cover_url": (
-                            "https://covers.openlibrary.org/b/id/123-L.jpg"
-                        ),
+                        "cover_url": ("https://covers.openlibrary.org/b/id/123-L.jpg"),
                         "subjects": [
                             "Computer Science",
                             "Software Engineering",
@@ -73,8 +61,13 @@ class ShowBook(BookDTO):
 
 class BookFilters(BaseModel):
     """Фильтры для поиска книг."""
-    title: str | None = Field(None, description="Поиск по названию (частичное совпадение)")
-    author: str | None = Field(None, description="Поиск по автору (частичное совпадение)")
+
+    title: str | None = Field(
+        None, description="Поиск по названию (частичное совпадение)"
+    )
+    author: str | None = Field(
+        None, description="Поиск по автору (частичное совпадение)"
+    )
     genre: str | None = Field(None, description="Точное совпадение жанра")
     year: int | None = Field(None, description="Точное совпадение года")
     available: bool | None = Field(None, description="Фильтр по доступности")
