@@ -23,12 +23,23 @@ class BaseApiClient(ABC):
             timeout: float = 10.0,
             retries: int = 3,
             backoff: float = 0.5,
-    ):
+            max_connections: int = 20,
+            max_keepalive_connections: int = 10,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.retries = retries
         self.backoff = backoff
-        self._client = httpx.AsyncClient(timeout=self.timeout)
+
+        limits = httpx.Limits(
+            max_connections=max_connections,
+            max_keepalive_connections=max_keepalive_connections,
+        )
+
+        self._client = httpx.AsyncClient(
+            timeout=self.timeout,
+            limits=limits,
+        )
         self.logger = logging.getLogger(self.client_name())
 
 

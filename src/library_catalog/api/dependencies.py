@@ -27,6 +27,10 @@ def get_openlibrary_client() -> OpenLibraryClient:
     return OpenLibraryClient(
         base_url=settings.openlibrary_base_url,
         timeout=settings.openlibrary_timeout,
+        max_connections=settings.openlibrary_max_connections,
+        max_keepalive_connections=(
+            settings.openlibrary_max_keepalive_connections
+        ),
     )
 
 

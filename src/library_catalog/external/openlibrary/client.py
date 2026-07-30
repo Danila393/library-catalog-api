@@ -7,12 +7,20 @@ from ...domain.exceptions import OpenLibraryException, OpenLibraryTimeoutExcepti
 
 class OpenLibraryClient(BaseApiClient):
     """Клиент для Open Library API."""
+
     def __init__(
-        self,
-        base_url: str = "https://openlibrary.org",
-        timeout: float = 10.0
-    ):
-        super().__init__(base_url, timeout=timeout)
+            self,
+            base_url: str = "https://openlibrary.org",
+            timeout: float = 10.0,
+            max_connections: int = 20,
+            max_keepalive_connections: int = 10,
+    ) -> None:
+        super().__init__(
+            base_url,
+            timeout=timeout,
+            max_connections=max_connections,
+            max_keepalive_connections=max_keepalive_connections,
+        )
 
 
     def client_name(self) -> str:
