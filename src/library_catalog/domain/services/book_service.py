@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from uuid import UUID
 
 from ..dto.book import BookCreateDTO, BookDTO, BookUpdateDTO
@@ -13,6 +14,7 @@ from ..ports.book_enricher import BookEnricherProtocol
 from ..ports.book_repository import BookRepositoryProtocol
 
 
+logger = logging.getLogger(__name__)
 
 
 class BookService:
@@ -203,7 +205,5 @@ class BookService:
             )
             return extra if extra else None
         except (OpenLibraryException, asyncio.TimeoutError):
-            import logging
-            logger = logging.getLogger(__name__)
             logger.warning("Failed to enrich book data from Open Library")
             return None

@@ -2,6 +2,7 @@
 Точка входа FastAPI приложения Library Catalog.
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,6 +16,7 @@ from .core.exceptions import register_exception_handlers
 from .core.logging_config import setup_logging
 
 
+logger = logging.getLogger(__name__)
 
 
 # ========== LIFECYCLE EVENTS ==========
@@ -31,7 +33,7 @@ async def lifespan(app: FastAPI):
     # Startup
     setup_logging()
     openlibrary_client = get_openlibrary_client()
-    print("🚀 Application started")
+    logger.info("🚀 Application started")
 
     try:
         yield
@@ -40,7 +42,7 @@ async def lifespan(app: FastAPI):
         await openlibrary_client.close()
         get_openlibrary_client.cache_clear()
         await dispose_engine()
-        print("👋 Application stopped")
+        logger.info("👋 Application stopped")
 
 
 # ========== CREATE APP ==========
