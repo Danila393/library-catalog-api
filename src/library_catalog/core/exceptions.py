@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from .logging_context import REQUEST_ID_HEADER, request_id_var
 
 
 logger = logging.getLogger(__name__)
@@ -60,13 +61,24 @@ def register_exception_handlers(app: FastAPI) -> None:
             request: Request,
             exc: Exception,
     ) -> JSONResponse:
-        logger.error(
-            "Unhandled exception during %s %s",
-            request.method,
-            request.url.path,
-            exc_info=exc,
+        request_id = getattr(
+            request.state,
+            "request_id",
+            request_id_var.get(),
         )
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal server error"},
-        )
+        token = request_id_var.set(request_id)
+
+        try:
+            logger.error(
+                "Unhandled exception during %s %s",
+                request.method,
+                request.url.path,
+                exc_info=exc,
+            )
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={"detail": "Internal server error"},
+                headers={REQUEST_ID_HEADER: request_id},
+            )
+        finally:
+            request_id_var.reset(token)

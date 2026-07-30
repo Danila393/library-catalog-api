@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api.dependencies import get_openlibrary_client
 from .api.v1.routers import books, health
+from .api.middleware.request_id import RequestIdMiddleware
+from .core.logging_context import REQUEST_ID_HEADER
 from .core.config import settings
 from .core.database import dispose_engine
 from .core.exceptions import register_exception_handlers
@@ -65,7 +67,10 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=[REQUEST_ID_HEADER],
 )
+
+app.add_middleware(RequestIdMiddleware)
 
 
 # ========== EXCEPTION HANDLERS ==========
