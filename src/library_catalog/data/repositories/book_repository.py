@@ -1,4 +1,5 @@
 from typing import TypeVar
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -16,18 +17,43 @@ class BookRepository(BaseRepository[Book]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Book)
 
+    @staticmethod
+    def _raise_if_duplicate_isbn(
+        exc: IntegrityError,
+        isbn: object,
+    ) -> None:
+        """Преобразовать конфликт уникальности ISBN в доменное исключение."""
+        sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(
+            exc.orig,
+            "pgcode",
+            None,
+        )
+
+        if sqlstate == "23505" and isinstance(isbn, str):
+            raise BookAlreadyExistsException(isbn) from exc
+
     async def create(self, **kwargs: object) -> Book:
         try:
             return await super().create(**kwargs)
         except IntegrityError as exc:
-            isbn = kwargs.get("isbn")
-            sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(
-                exc.orig, "pgcode", None
+            self._raise_if_duplicate_isbn(
+                exc,
+                kwargs.get("isbn"),
             )
+            raise
 
-            if sqlstate == "23505" and isinstance(isbn, str):
-                raise BookAlreadyExistsException(isbn) from exc
-
+    async def update(
+        self,
+        id: UUID,
+        **kwargs: object,
+    ) -> Book | None:
+        try:
+            return await super().update(id, **kwargs)
+        except IntegrityError as exc:
+            self._raise_if_duplicate_isbn(
+                exc,
+                kwargs.get("isbn"),
+            )
             raise
 
     @staticmethod

@@ -10,6 +10,7 @@ from ..exceptions import (
     InvalidPagesException,
     InvalidYearException,
     OpenLibraryException,
+    OpenLibraryTimeoutException,
 )
 from ..ports.book_enricher import BookEnricherProtocol
 from ..ports.book_repository import BookRepositoryProtocol
@@ -201,6 +202,10 @@ class BookService:
                 timeout=5.0,
             )
             return extra if extra else None
-        except (TimeoutError, OpenLibraryException):
+        except (
+            TimeoutError,
+            OpenLibraryException,
+            OpenLibraryTimeoutException,
+        ):
             logger.warning("Failed to enrich book data from Open Library")
             return None
