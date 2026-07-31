@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import make_asgi_app
 
 from .api.dependencies import get_openlibrary_client
 from .api.middleware.request_id import RequestIdMiddleware
@@ -60,6 +61,11 @@ app = FastAPI(
     redoc_url=settings.redoc_url,
     lifespan=lifespan,
 )
+
+
+# ========== METRICS ==========
+
+app.mount("/metrics", make_asgi_app())
 
 
 # ========== MIDDLEWARE ==========

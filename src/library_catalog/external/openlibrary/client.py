@@ -5,6 +5,7 @@ import httpx
 from ...domain.dto.book import BookExtra
 from ...domain.exceptions import OpenLibraryException, OpenLibraryTimeoutException
 from ..base.base_client import BaseApiClient
+from ..base.exceptions import CircuitBreakerOpenError
 
 
 class OpenLibraryClient(BaseApiClient):
@@ -16,12 +17,16 @@ class OpenLibraryClient(BaseApiClient):
         timeout: float = 10.0,
         max_connections: int = 20,
         max_keepalive_connections: int = 10,
+        circuit_breaker_failure_threshold: int = 5,
+        circuit_breaker_recovery_timeout: float = 30.0,
     ) -> None:
         super().__init__(
             base_url,
             timeout=timeout,
             max_connections=max_connections,
             max_keepalive_connections=max_keepalive_connections,
+            circuit_breaker_failure_threshold=circuit_breaker_failure_threshold,
+            circuit_breaker_recovery_timeout=circuit_breaker_recovery_timeout,
         )
 
     def client_name(self) -> str:
@@ -40,6 +45,8 @@ class OpenLibraryClient(BaseApiClient):
 
         except httpx.TimeoutException as exc:
             raise OpenLibraryTimeoutException(self.timeout) from exc
+        except CircuitBreakerOpenError as exc:
+            raise OpenLibraryException(str(exc)) from exc
         except httpx.HTTPError as exc:
             raise OpenLibraryException(str(exc)) from exc
 
@@ -62,6 +69,8 @@ class OpenLibraryClient(BaseApiClient):
 
         except httpx.TimeoutException as exc:
             raise OpenLibraryTimeoutException(self.timeout) from exc
+        except CircuitBreakerOpenError as exc:
+            raise OpenLibraryException(str(exc)) from exc
         except httpx.HTTPError as exc:
             raise OpenLibraryException(str(exc)) from exc
 

@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import PostgresDsn
+from pydantic import PositiveFloat, PositiveInt, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     openlibrary_timeout: float = 10.0
     openlibrary_max_connections: int = 20
     openlibrary_max_keepalive_connections: int = 10
+    openlibrary_circuit_breaker_failure_threshold: PositiveInt = 5
+    openlibrary_circuit_breaker_recovery_timeout: PositiveFloat = 30.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

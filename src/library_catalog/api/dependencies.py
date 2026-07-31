@@ -27,6 +27,12 @@ def get_openlibrary_client() -> OpenLibraryClient:
         timeout=settings.openlibrary_timeout,
         max_connections=settings.openlibrary_max_connections,
         max_keepalive_connections=(settings.openlibrary_max_keepalive_connections),
+        circuit_breaker_failure_threshold=(
+            settings.openlibrary_circuit_breaker_failure_threshold
+        ),
+        circuit_breaker_recovery_timeout=(
+            settings.openlibrary_circuit_breaker_recovery_timeout
+        ),
     )
 
 
