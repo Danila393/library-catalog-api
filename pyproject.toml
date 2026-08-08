@@ -1,7 +1,8 @@
 [project]
 name = "library-catalog"
 version = "0.1.0"
-description = ""
+description = "Asynchronous REST API for managing a library catalog"
+readme = "README.md"
 authors = [
     {name = "Данила",email = "danil.anayev@mail.ru"}
 ]
