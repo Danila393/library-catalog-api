@@ -30,6 +30,16 @@ class NotFoundException(AppException):
         )
 
 
+class DatabaseUnavailableException(AppException):
+    """База данных недоступна."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            message="Database is unavailable",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Обработчики исключений."""
 
